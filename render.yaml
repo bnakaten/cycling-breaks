@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: cycling-breaks
+    env: node
+    rootDir: app
+    buildCommand: yarn build
+    startCommand: yarn start
+    plan: starter
+    envVars:
+      - key: NODE_VERSION
+        value: 26
