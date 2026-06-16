@@ -1,0 +1,11 @@
+[workspace]
+authors = ["Benjamin Nakaten <bnakaten@gfz.de>"]
+channels = ["conda-forge"]
+name = "breaks"
+platforms = ["linux-64", "osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+nodejs = ">=26.3.0,<26.4"
