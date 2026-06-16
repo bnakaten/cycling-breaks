@@ -14,8 +14,8 @@ async function startServer() {
   const PORT = 3000;
 
   // Set limits for large GPX files (parsed as text)
-  app.use(express.json({ limit: '100mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '100mb' }));
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
   // API Route: Analyze GPX text payload
   app.post('/api/analyze', (req, res) => {

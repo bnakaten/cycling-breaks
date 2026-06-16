@@ -7,9 +7,9 @@ coverage/
 .env*
 !.env.example
 .yarn/*
-!.yarn/releases/
-!.yarn/plugins/
-!.yarn/patches/
-!.yarn/sdks/
-!.yarn/versions/
+!.yarn/releases
+!.yarn/plugins
+!.yarn/patches
+!.yarn/sdks
+!.yarn/versions
 .pnp.*
