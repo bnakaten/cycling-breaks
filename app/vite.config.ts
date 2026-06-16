@@ -28,6 +28,7 @@ export default defineConfig(() => {
       __GIT_BRANCH__: JSON.stringify(gitInfo.branch),
       __GIT_COMMIT__: JSON.stringify(gitInfo.commit),
       __REPO_URL__: JSON.stringify('https://github.com/bnakaten/cycling-breaks'),
+      __BUILD_TIMESTAMP__: JSON.stringify(new Date().toISOString()),
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
