@@ -23,46 +23,77 @@ export default function App() {
   
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadPhase, setUploadPhase] = useState<'uploading' | 'analyzing' | null>(null);
 
   // Trigger analysis by calling Express REST API back-end
-  const handleAnalyze = async (content: string, name: string, settings: AnalysisSettings) => {
+  const handleAnalyze = (content: string, name: string, settings: AnalysisSettings) => {
     setIsLoading(true);
     setError(null);
     setSelectedStop(null);
+    setUploadProgress(0);
+    setUploadPhase('uploading');
 
-    try {
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content,
-          settings,
-        }),
-      });
+    const xhr = new XMLHttpRequest();
 
-      if (!response.ok) {
-        const errDetail = await response.json().catch(() => ({}));
-        throw new Error(errDetail.error || `Netzwerk-Fehler (${response.status})`);
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        setUploadProgress(Math.round((e.loaded / e.total) * 100));
       }
+    });
 
-      const result: AnalysisResponse = await response.json();
-
-      if (result.success) {
-        setPoints(result.points);
-        setStops(result.stops);
-        setSummary(result.summary);
-        setFilename(name);
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const result: AnalysisResponse = JSON.parse(xhr.responseText);
+          if (result.success) {
+            setPoints(result.points);
+            setStops(result.stops);
+            setSummary(result.summary);
+            setFilename(name);
+          } else {
+            throw new Error(result.error || 'Unbekannter Fehler bei der Analyse.');
+          }
+        } catch (parseErr: any) {
+          console.error(parseErr);
+          setError(parseErr.message || 'Fehler beim Verarbeiten der Antwort.');
+        }
       } else {
-        throw new Error(result.error || 'Unbekannter Fehler bei der Analyse.');
+        let errMsg = `Netzwerk-Fehler (${xhr.status})`;
+        try {
+          const errDetail = JSON.parse(xhr.responseText);
+          errMsg = errDetail.error || errMsg;
+        } catch {}
+        setError(errMsg);
       }
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Verbindung zum Analyse-Server fehlgeschlagen.');
-    } finally {
       setIsLoading(false);
-    }
+      setUploadProgress(null);
+      setUploadPhase(null);
+    });
+
+    xhr.addEventListener('error', () => {
+      setError('Verbindung zum Analyse-Server fehlgeschlagen.');
+      setIsLoading(false);
+      setUploadProgress(null);
+      setUploadPhase(null);
+    });
+
+    xhr.addEventListener('abort', () => {
+      setIsLoading(false);
+      setUploadProgress(null);
+      setUploadPhase(null);
+    });
+
+    xhr.open('POST', '/api/analyze');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+
+    xhr.addEventListener('readystatechange', () => {
+      if (xhr.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
+        setUploadPhase('analyzing');
+      }
+    });
+
+    xhr.send(JSON.stringify({ content, settings }));
   };
 
   // Load the Munich tour demo directly
@@ -178,7 +209,9 @@ export default function App() {
             <UploadForm 
               onAnalyze={handleAnalyze} 
               isLoading={isLoading} 
-              error={error} 
+              error={error}
+              uploadProgress={uploadProgress}
+              uploadPhase={uploadPhase}
             />
           </div>
 

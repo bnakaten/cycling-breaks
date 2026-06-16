@@ -6,14 +6,17 @@
 import React, { useState, useRef } from 'react';
 import { AnalysisSettings, DetectionMethod } from '../types';
 import { Upload, FileCode, Sliders, ChevronDown, ChevronUp, AlertCircle, HelpCircle } from 'lucide-react';
+import { ProgressBar } from './ProgressBar';
 
 interface UploadFormProps {
   onAnalyze: (content: string, filename: string, settings: AnalysisSettings) => void;
   isLoading: boolean;
   error: string | null;
+  uploadProgress: number | null;
+  uploadPhase: 'uploading' | 'analyzing' | null;
 }
 
-export function UploadForm({ onAnalyze, isLoading, error }: UploadFormProps) {
+export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, uploadPhase }: UploadFormProps) {
   // Settings State
   const [minDurationMinutes, setMinDurationMinutes] = useState<number>(5);
   const [maxRadiusMeters, setMaxRadiusMeters] = useState<number>(15);
@@ -294,7 +297,15 @@ export function UploadForm({ onAnalyze, isLoading, error }: UploadFormProps) {
       </form>
 
       {/* Trigger Button */}
-      <div className="mt-6 border-t border-[#E5E7EB] pt-4">
+      <div className="mt-6 border-t border-[#E5E7EB] pt-4 space-y-3">
+        {isLoading && uploadProgress !== null && uploadPhase && (
+          <ProgressBar
+            value={uploadProgress}
+            phase={uploadPhase}
+            fileName={uploadedFile?.name}
+          />
+        )}
+
         <button
           onClick={handleSubmit}
           disabled={!uploadedFile || isLoading}
