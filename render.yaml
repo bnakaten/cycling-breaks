@@ -3,7 +3,7 @@ services:
     name: cycling-breaks
     env: node
     rootDir: app
-    buildCommand: corepack enable && yarn install --immutable && yarn build
+    buildCommand: yarn install --immutable && yarn build
     startCommand: yarn start
     plan: starter
     envVars:
