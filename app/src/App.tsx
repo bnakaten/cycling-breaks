@@ -11,6 +11,7 @@ import { StatsDashboard } from './components/StatsDashboard';
 import { MapContainer } from './components/MapContainer';
 import { StopList } from './components/StopList';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { BuildInfo } from './components/BuildInfo';
 import { MapPin, Info, Sparkles, AlertCircle, FileSpreadsheet, Compass } from 'lucide-react';
 
 export default function App() {
@@ -230,6 +231,8 @@ export default function App() {
         </div>
 
       </main>
+
+      <BuildInfo />
     </div>
   );
 }
