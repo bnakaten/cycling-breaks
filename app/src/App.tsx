@@ -182,7 +182,7 @@ function AppContent() {
                   />
                   <input
                     type="text"
-                    placeholder="Redirect URI (optional)"
+                    placeholder="http://cycling-breaks.onrender.com/api/auth/strava/callback"
                     value={configRedirectUri}
                     onChange={(e) => setConfigRedirectUri(e.target.value)}
                     className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-64 focus:outline-none focus:border-[#FC4C02]"
