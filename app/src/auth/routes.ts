@@ -40,7 +40,10 @@ export function createAuthRouter(): Router {
     const state = crypto.randomBytes(16).toString('hex');
     const key = storeState(state);
     const envRedirect = process.env.STRAVA_REDIRECT_URI || '';
+    console.log('STRAVA_REDIRECT_URI env:', process.env.STRAVA_REDIRECT_URI);
+    console.log('STRAVA_REDIRECT_URI from DB:', getStravaEnvRedirectUri());
     const redirectUri = envRedirect || getStravaEnvRedirectUri() || `${req.protocol}://${req.get('host')}/api/auth/strava/callback`;
+    console.log('Using redirect URI:', redirectUri);
     const url = getStravaAuthUrl(state, key, redirectUri);
     res.json({ url });
   });
