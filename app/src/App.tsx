@@ -41,7 +41,7 @@ function AppContent() {
   const [showStravaConfig, setShowStravaConfig] = useState(false);
   const [configClientId, setConfigClientId] = useState('');
   const [configClientSecret, setConfigClientSecret] = useState('');
-  const [configRedirectUri, setConfigRedirectUri] = useState('http://localhost:3000/api/auth/strava/callback');
+  const [configRedirectUri, setConfigRedirectUri] = useState('https://cycling-breaks.onrender.com/api/auth/strava/callback');
   const [configError, setConfigError] = useState<string | null>(null);
   const [configSaving, setConfigSaving] = useState(false);
 
