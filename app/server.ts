@@ -3,11 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import 'dotenv/config';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { analyzeGPXData } from './src/gpxAnalyzer';
 import { AnalysisSettings } from './src/types';
+import { createAuthRouter } from './src/auth/routes';
+import { authMiddleware, optionalAuth } from './src/auth/middleware';
+import { findUserById, updateTokens } from './src/auth/db';
+import { initStravaCredentials, refreshAccessToken, getAthleteActivities, getActivityStreams, buildGPXFromStreams, StravaAuthError } from './src/auth/strava';
 
 async function startServer() {
   const app = express();
@@ -16,9 +22,16 @@ async function startServer() {
   // Set limits for large GPX files (parsed as text)
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+  app.use(cookieParser());
 
-  // API Route: Analyze GPX text payload
-  app.post('/api/analyze', (req, res) => {
+  // Load Strava credentials from DB if env vars are not set
+  await initStravaCredentials();
+
+  // Auth routes
+  app.use('/api/auth', createAuthRouter());
+
+  // API Route: Analyze GPX text payload (optional auth)
+  app.post('/api/analyze', optionalAuth, (req, res) => {
     try {
       const { content, settings } = req.body;
       
@@ -48,6 +61,80 @@ async function startServer() {
     }
   });
 
+  // Strava: list activities
+  app.get('/api/strava/activities', authMiddleware, async (req, res) => {
+    try {
+      const user = await findUserById(req.user!.userId);
+      if (!user) {
+        return res.status(401).json({ error: 'Benutzer nicht gefunden.' });
+      }
+
+      let accessToken = user.access_token;
+
+      if (user.expires_at * 1000 < Date.now()) {
+        try {
+          const refreshed = await refreshAccessToken(user.refresh_token);
+          accessToken = refreshed.access_token;
+          await updateTokens(user.id, refreshed.access_token, refreshed.refresh_token, refreshed.expires_at);
+        } catch {
+          return res.status(401).json({ error: 'Strava-Sitzung abgelaufen. Bitte erneut einloggen.' });
+        }
+      }
+
+      const after = req.query.after ? parseInt(req.query.after as string) : undefined;
+      const before = req.query.before ? parseInt(req.query.before as string) : undefined;
+      const activities = await getAthleteActivities(accessToken, { after, before });
+      return res.json({ activities });
+    } catch (err: any) {
+      console.error('Strava activities error:', err);
+      return res.status(500).json({ error: err.message || 'Fehler beim Abrufen der Aktivitäten.' });
+    }
+  });
+
+  // Strava: fetch GPX data for a specific activity
+  app.get('/api/strava/activity/:id/gpx', authMiddleware, async (req, res) => {
+    try {
+      const activityId = parseInt(req.params.id, 10);
+      if (isNaN(activityId)) {
+        return res.status(400).json({ error: 'Ungültige Aktivitäts-ID.' });
+      }
+
+      const user = await findUserById(req.user!.userId);
+      if (!user) {
+        return res.status(401).json({ error: 'Benutzer nicht gefunden.' });
+      }
+
+      let accessToken = user.access_token;
+
+      if (user.expires_at * 1000 < Date.now()) {
+        try {
+          const refreshed = await refreshAccessToken(user.refresh_token);
+          accessToken = refreshed.access_token;
+          await updateTokens(user.id, refreshed.access_token, refreshed.refresh_token, refreshed.expires_at);
+        } catch {
+          return res.status(401).json({ error: 'Strava-Sitzung abgelaufen. Bitte erneut einloggen.' });
+        }
+      }
+
+      const streams = await getActivityStreams(accessToken, activityId);
+
+      if (!streams.latlng || !streams.time) {
+        return res.status(400).json({ error: 'Diese Aktivität enthält keine GPS-Daten.' });
+      }
+
+      const activityName = streams.latlng ? 'Strava Activity' : '';
+      const gpx = buildGPXFromStreams(streams, activityName);
+
+      return res.json({ gpx, activityId });
+    } catch (err: any) {
+      console.error('Strava GPX error:', err);
+      if (err instanceof StravaAuthError) {
+        return res.status(401).json({ error: 'Strava-Token ungültig. Bitte erneut einloggen.' });
+      }
+      return res.status(500).json({ error: err.message || 'Fehler beim Abrufen der GPX-Daten.' });
+    }
+  });
+
   // Vite Assets Integration
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -58,8 +145,8 @@ async function startServer() {
     console.log('Vite development middleware integrated.');
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.use(optionalAuth, express.static(distPath));
+    app.get('*', optionalAuth, (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
     console.log(`Serving static production build from: ${distPath}`);

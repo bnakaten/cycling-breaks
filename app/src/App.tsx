@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { AnalysisResponse, AnalysisSettings, GPXPoint, GPXStop } from './types';
 import { DEMO_GPX_XML } from './demoGPX';
 import { UploadForm } from './components/UploadForm';
@@ -12,9 +12,19 @@ import { MapContainer } from './components/MapContainer';
 import { StopList } from './components/StopList';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { BuildInfo } from './components/BuildInfo';
-import { MapPin, Info, Sparkles, AlertCircle, FileSpreadsheet, Compass } from 'lucide-react';
+import { UserMenu } from './components/UserMenu';
+import { AuthProvider, useAuth } from './components/AuthContext';
+import { Info, Sparkles, FileSpreadsheet, Compass } from 'lucide-react';
 
 export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+function AppContent() {
   const [points, setPoints] = useState<GPXPoint[]>([]);
   const [stops, setStops] = useState<GPXStop[]>([]);
   const [selectedStop, setSelectedStop] = useState<GPXStop | null>(null);
@@ -25,6 +35,15 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadPhase, setUploadPhase] = useState<'uploading' | 'analyzing' | null>(null);
+
+  const { user, isLoading: authLoading, login, stravaConfigured, configureStrava } = useAuth();
+
+  const [showStravaConfig, setShowStravaConfig] = useState(false);
+  const [configClientId, setConfigClientId] = useState('');
+  const [configClientSecret, setConfigClientSecret] = useState('');
+  const [configRedirectUri, setConfigRedirectUri] = useState('http://localhost:3000/api/auth/strava/callback');
+  const [configError, setConfigError] = useState<string | null>(null);
+  const [configSaving, setConfigSaving] = useState(false);
 
   // Trigger analysis by calling Express REST API back-end
   const handleAnalyze = (content: string, name: string, settings: AnalysisSettings) => {
@@ -108,6 +127,20 @@ export default function App() {
     handleAnalyze(DEMO_GPX_XML, 'muenchen_altstadt_tour.gpx', defaultSettings);
   };
 
+  const handleConfigSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setConfigError(null);
+    setConfigSaving(true);
+    try {
+      await configureStrava(configClientId, configClientSecret, configRedirectUri);
+      login();
+    } catch (err: any) {
+      setConfigError(err.message || 'Fehler beim Speichern.');
+    } finally {
+      setConfigSaving(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-[#111827] pb-12 flex flex-col font-sans">
       
@@ -127,6 +160,75 @@ export default function App() {
 
         {/* Action Controls */}
         <div className="flex items-center gap-3">
+          {(() => {
+            if (authLoading) return null;
+            if (user) return <UserMenu key="menu" />;
+            if (showStravaConfig) {
+              return (
+                <form key="config" onSubmit={handleConfigSubmit} className="flex items-center gap-1.5 flex-wrap">
+                  <input
+                    type="text"
+                    placeholder="Client ID"
+                    value={configClientId}
+                    onChange={(e) => setConfigClientId(e.target.value)}
+                    className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-28 focus:outline-none focus:border-[#FC4C02]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Client Secret"
+                    value={configClientSecret}
+                    onChange={(e) => setConfigClientSecret(e.target.value)}
+                    className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-32 focus:outline-none focus:border-[#FC4C02]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Redirect URI (optional)"
+                    value={configRedirectUri}
+                    onChange={(e) => setConfigRedirectUri(e.target.value)}
+                    className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-64 focus:outline-none focus:border-[#FC4C02]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={configSaving}
+                    className="bg-[#FC4C02] hover:bg-[#E34402] text-white text-[10px] px-2 py-1 rounded font-semibold disabled:opacity-50 transition cursor-pointer"
+                  >
+                    {configSaving ? 'Speichere...' : 'Speichern & verbinden'}
+                  </button>
+                  {stravaConfigured && (
+                    <button
+                      type="button"
+                      onClick={() => { setShowStravaConfig(false); login(); }}
+                      className="bg-[#E5E7EB] hover:bg-[#D1D5DB] text-[#374151] text-[10px] px-2 py-1 rounded font-semibold transition cursor-pointer"
+                    >
+                      Verbinden
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => { setShowStravaConfig(false); setConfigError(null); }}
+                    className="text-[10px] text-[#6B7280] hover:text-[#111827] px-1 py-1 cursor-pointer"
+                  >
+                    Abbrechen
+                  </button>
+                  {configError && (
+                    <span className="text-[10px] text-rose-600 w-full">{configError}</span>
+                  )}
+                </form>
+              );
+            }
+            return (
+              <button
+                key="login"
+                onClick={() => setShowStravaConfig(true)}
+                className="inline-flex items-center gap-1.5 bg-[#FC4C02] hover:bg-[#E34402] text-white text-xs px-3 py-1.5 rounded font-semibold transition cursor-pointer"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7.01 13.828h4.172" />
+                </svg>
+                Mit Strava verbinden
+              </button>
+            );
+          })()}
           <button
             onClick={handleLoadDemo}
             disabled={isLoading}

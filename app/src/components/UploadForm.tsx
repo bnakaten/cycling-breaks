@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AnalysisSettings, DetectionMethod } from '../types';
 import { Upload, FileCode, Sliders, ChevronDown, ChevronUp, AlertCircle, HelpCircle } from 'lucide-react';
 import { ProgressBar } from './ProgressBar';
+import { useAuth } from './AuthContext';
 
 interface UploadFormProps {
   onAnalyze: (content: string, filename: string, settings: AnalysisSettings) => void;
@@ -17,6 +18,8 @@ interface UploadFormProps {
 }
 
 export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, uploadPhase }: UploadFormProps) {
+  const { user } = useAuth();
+
   // Settings State
   const [minDurationMinutes, setMinDurationMinutes] = useState<number>(5);
   const [maxRadiusMeters, setMaxRadiusMeters] = useState<number>(15);
@@ -32,6 +35,75 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
   const [uploadedFile, setUploadedFile] = useState<{ name: string; content: string; size: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Strava activity selector states
+  const [stravaActivities, setStravaActivities] = useState<StravaActivity[]>([]);
+  const [selectedActivityId, setSelectedActivityId] = useState<number | null>(null);
+  const [stravaLoading, setStravaLoading] = useState<boolean>(false);
+  const [stravaError, setStravaError] = useState<string | null>(null);
+  const [stravaDateFrom, setStravaDateFrom] = useState<string>(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return d.toISOString().slice(0, 10);
+  });
+  const [stravaDateTo, setStravaDateTo] = useState<string>(() =>
+    new Date().toISOString().slice(0, 10)
+  );
+
+  interface StravaActivity {
+    id: number;
+    name: string;
+    distance: number;
+    start_date: string;
+    type: string;
+  }
+
+  const fetchStravaActivities = (from?: string, to?: string) => {
+    if (!user) return;
+    setStravaLoading(true);
+    setStravaError(null);
+    const params = new URLSearchParams();
+    if (from) params.set('after', String(Math.floor(new Date(from).getTime() / 1000)));
+    if (to) params.set('before', String(Math.floor(new Date(to + 'T23:59:59').getTime() / 1000)));
+    fetch(`/api/strava/activities?${params.toString()}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Fehler beim Laden.');
+        return res.json();
+      })
+      .then((data) => setStravaActivities(data.activities || []))
+      .catch((err) => setStravaError(err.message))
+      .finally(() => setStravaLoading(false));
+  };
+
+  useEffect(() => {
+    fetchStravaActivities(stravaDateFrom, stravaDateTo);
+  }, [user]);
+
+  const handleStravaActivityChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = e.target.value ? parseInt(e.target.value) : null;
+    setSelectedActivityId(id);
+    if (!id) {
+      setUploadedFile(null);
+      return;
+    }
+    setStravaLoading(true);
+    setStravaError(null);
+    try {
+      const res = await fetch(`/api/strava/activity/${id}/gpx`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Fehler beim Abrufen der GPX-Daten.');
+      }
+      const data = await res.json();
+      const activity = stravaActivities.find((a) => a.id === id);
+      const name = activity ? `${activity.name}.gpx` : `strava_${id}.gpx`;
+      setUploadedFile({ name, content: data.gpx, size: '' });
+    } catch (err: any) {
+      setStravaError(err.message);
+    } finally {
+      setStravaLoading(false);
+    }
+  };
+
   // Convert bytes for display
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
@@ -39,6 +111,11 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
     const sizes = ['Bytes', 'KB', 'MB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatDistance = (meters: number): string => {
+    if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
+    return `${meters.toFixed(0)} m`;
   };
 
   // Process file contents
@@ -119,6 +196,69 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
             Konfiguriere Grenzwerte und lade dein GPX-Protokoll zur Stopp-Erkennung.
           </p>
         </div>
+
+        {/* Strava Activity Selector */}
+        {user && (
+          <div className="border border-[#FC4C02]/30 bg-orange-50/50 rounded-md p-3 space-y-2">
+            <div className="flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#FC4C02">
+                <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7.01 13.828h4.172" />
+              </svg>
+              <span className="text-xs font-semibold text-[#FC4C02] uppercase tracking-wider">
+                Strava Aktivität
+              </span>
+            </div>
+            <div className="flex gap-1.5 items-center">
+              <input
+                type="date"
+                value={stravaDateFrom}
+                onChange={(e) => setStravaDateFrom(e.target.value)}
+                className="flex-1 text-[10px] border border-[#E5E7EB] bg-white rounded px-1.5 py-1 text-[#111827] focus:outline-none focus:border-[#FC4C02]"
+              />
+              <span className="text-[10px] text-[#6B7280]">–</span>
+              <input
+                type="date"
+                value={stravaDateTo}
+                onChange={(e) => setStravaDateTo(e.target.value)}
+                className="flex-1 text-[10px] border border-[#E5E7EB] bg-white rounded px-1.5 py-1 text-[#111827] focus:outline-none focus:border-[#FC4C02]"
+              />
+              <button
+                type="button"
+                onClick={() => fetchStravaActivities(stravaDateFrom, stravaDateTo)}
+                disabled={stravaLoading}
+                className="px-2 py-1 bg-[#E5E7EB] hover:bg-[#D1D5DB] text-[#374151] text-[10px] rounded font-semibold uppercase tracking-wider disabled:opacity-50 transition cursor-pointer"
+              >
+                Laden
+              </button>
+            </div>
+            {stravaLoading && stravaActivities.length === 0 ? (
+              <p className="text-[10px] text-[#6B7280]">Lade Aktivitäten...</p>
+            ) : stravaError && stravaActivities.length === 0 ? (
+              <p className="text-[10px] text-rose-600">{stravaError}</p>
+            ) : stravaActivities.length === 0 ? (
+              <p className="text-[10px] text-[#6B7280]">Keine Aktivitäten in diesem Zeitraum.</p>
+            ) : (
+              <div>
+                <select
+                  value={selectedActivityId ?? ''}
+                  onChange={handleStravaActivityChange}
+                  disabled={stravaLoading || isLoading}
+                  className="w-full text-[10px] border border-[#E5E7EB] bg-white rounded px-2 py-1.5 text-[#111827] focus:outline-none focus:border-[#FC4C02] disabled:opacity-50"
+                >
+                  <option value="">Aktivität wählen...</option>
+                  {stravaActivities.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {formatDistance(a.distance)} — {a.name} ({new Date(a.start_date).toLocaleDateString()})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {stravaError && stravaActivities.length > 0 && (
+              <p className="text-[10px] text-rose-600">{stravaError}</p>
+            )}
+          </div>
+        )}
 
         {/* Drag and Drop Zone */}
         <div 

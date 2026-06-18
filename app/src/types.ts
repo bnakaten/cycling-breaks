@@ -66,3 +66,10 @@ export interface AnalysisResponse {
   stops: GPXStop[];
   summary: AnalysisSummary;
 }
+
+export interface AuthUser {
+  userId: number;
+  stravaAthleteId: number;
+  firstname: string;
+  lastname: string;
+}
