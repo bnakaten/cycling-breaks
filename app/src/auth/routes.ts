@@ -35,7 +35,7 @@ export function createAuthRouter(): Router {
 
   router.get('/login', (req: Request, res: Response) => {
     if (!isStravaConfigured()) {
-      return res.status(500).json({ error: 'Strava ist nicht konfiguriert.' });
+      return res.status(500).json({ error: 'Strava is not configured.' });
     }
     const state = crypto.randomBytes(16).toString('hex');
     const key = storeState(state);
@@ -55,13 +55,13 @@ export function createAuthRouter(): Router {
   router.post('/strava-config', async (req: Request, res: Response) => {
     const { clientId, clientSecret, redirectUri } = req.body;
     if (!isStravaConfigured() && (!clientId || !clientSecret)) {
-      return res.status(400).json({ error: 'Client ID und Client Secret sind erforderlich.' });
+      return res.status(400).json({ error: 'Client ID and Client Secret are required.' });
     }
     try {
       await setStravaCredentials(clientId, clientSecret, redirectUri);
       return res.json({ success: true });
     } catch (err: any) {
-      return res.status(500).json({ error: err.message || 'Fehler beim Speichern der Konfiguration.' });
+      return res.status(500).json({ error: err.message || 'Error saving configuration.' });
     }
   });
 
@@ -71,12 +71,12 @@ export function createAuthRouter(): Router {
     console.log('Callback received:', { code: typeof code, state, sk });
 
     if (!code || typeof code !== 'string') {
-      return res.status(400).send('Fehlender OAuth-Code.');
+      return res.status(400).send('Missing OAuth code.');
     }
 
     if (!state || typeof state !== 'string' || !sk || typeof sk !== 'string' || !verifyState(sk, state)) {
       console.log('State mismatch:', { state, sk });
-      return res.status(403).send('Ungültiger State-Parameter.');
+      return res.status(403).send('Invalid state parameter.');
     }
 
     try {

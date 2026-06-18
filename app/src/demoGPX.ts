@@ -6,12 +6,12 @@
 export const DEMO_GPX_XML = `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <gpx version="1.1" creator="GPX-Standzeit-Generator" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
   <metadata>
-    <name>München Altstadt Rundgang (Demo mit Stopps)</name>
-    <desc>Ein Spaziergang durch die Münchener Altstadt mit drei ausgeprägten Standzeiten.</desc>
+    <name>Munich Old Town Walk (Demo with Stops)</name>
+    <desc>A walk through Munich's old town with three distinct stop times.</desc>
     <time>2026-06-15T12:00:00Z</time>
   </metadata>
   <trk>
-    <name>Tour Altstadt</name>
+    <name>Old Town Tour</name>
     <trkseg>
       <!-- --- START: Marienplatz --- -->
       <trkpt lat="48.13715" lon="11.57538">
@@ -23,8 +23,8 @@ export const DEMO_GPX_XML = `<?xml version="1.0" encoding="UTF-8" standalone="no
         <time>2026-06-15T12:00:15Z</time>
       </trkpt>
 
-      <!-- STOPP 1: Kaffeepause am Marienplatz (Dauer: ~ 6 Minuten) -->
-      <!-- Es gibt leichten Jitter/Schwankungen um 1-5 Meter -->
+      <!-- STOP 1: Coffee break at Marienplatz (Duration: ~ 6 minutes) -->
+      <!-- Slight jitter/fluctuation of 1-5 meters -->
       <trkpt lat="48.13712" lon="11.57540">
         <ele>519.2</ele>
         <time>2026-06-15T12:00:45Z</time>
@@ -54,7 +54,7 @@ export const DEMO_GPX_XML = `<?xml version="1.0" encoding="UTF-8" standalone="no
         <time>2026-06-15T12:06:45Z</time>
       </trkpt>
 
-      <!-- Bewegung zum Viktualienmarkt -->
+      <!-- Movement to Viktualienmarkt -->
       <trkpt lat="48.13670" lon="11.57551">
         <ele>519.0</ele>
         <time>2026-06-15T12:07:30Z</time>
@@ -72,8 +72,8 @@ export const DEMO_GPX_XML = `<?xml version="1.0" encoding="UTF-8" standalone="no
         <time>2026-06-15T12:09:45Z</time>
       </trkpt>
 
-      <!-- STOPP 2: Pause am Viktualienmarkt (Dauer: ~ 12 Minuten) -->
-      <!-- GPS Drift-Simulation zwischen 10 und 15 Meter -->
+      <!-- STOP 2: Break at Viktualienmarkt (Duration: ~ 12 minutes) -->
+      <!-- GPS drift simulation between 10 and 15 meters -->
       <trkpt lat="48.13511" lon="11.57610">
         <ele>518.5</ele>
         <time>2026-06-15T12:10:45Z</time>
@@ -86,7 +86,7 @@ export const DEMO_GPX_XML = `<?xml version="1.0" encoding="UTF-8" standalone="no
         <ele>518.4</ele>
         <time>2026-06-15T12:12:45Z</time>
       </trkpt>
-      <!-- Kleiner Ausreißer/Schritt -->
+      <!-- Small outlier/step -->
       <trkpt lat="48.13519" lon="11.57615">
         <ele>518.5</ele>
         <time>2026-06-15T12:13:45Z</time>
@@ -112,7 +112,7 @@ export const DEMO_GPX_XML = `<?xml version="1.0" encoding="UTF-8" standalone="no
         <time>2026-06-15T12:22:15Z</time>
       </trkpt>
 
-      <!-- Bewegung zum Hofbräuhaus -->
+      <!-- Movement to Hofbräuhaus -->
       <trkpt lat="48.13580" lon="11.57710">
         <ele>518.6</ele>
         <time>2026-06-15T12:23:00Z</time>
@@ -130,7 +130,7 @@ export const DEMO_GPX_XML = `<?xml version="1.0" encoding="UTF-8" standalone="no
         <time>2026-06-15T12:26:00Z</time>
       </trkpt>
 
-      <!-- STOPP 3: Einkehr im Hofbräuhaus (Dauer: ~ 10 Minuten) -->
+      <!-- STOP 3: Stop at Hofbräuhaus (Duration: ~ 10 minutes) -->
       <trkpt lat="48.13760" lon="11.58014">
         <ele>519.2</ele>
         <time>2026-06-15T12:27:00Z</time>
@@ -139,7 +139,7 @@ export const DEMO_GPX_XML = `<?xml version="1.0" encoding="UTF-8" standalone="no
         <ele>519.3</ele>
         <time>2026-06-15T12:28:30Z</time>
       </trkpt>
-      <!-- GPS Spike Simulation: Springt kurz 80 Meter nach Norden und springt sofort zurück -->
+      <!-- GPS Spike Simulation: Briefly jumps 80 meters north and immediately jumps back -->
       <trkpt lat="48.13830" lon="11.58011">
         <ele>521.0</ele>
         <time>2026-06-15T12:29:00Z</time>
@@ -161,7 +161,7 @@ export const DEMO_GPX_XML = `<?xml version="1.0" encoding="UTF-8" standalone="no
         <time>2026-06-15T12:36:00Z</time>
       </trkpt>
 
-      <!-- Bewegung zurück zum Ausgangspunkt -->
+      <!-- Movement back to the starting point -->
       <trkpt lat="48.13775" lon="11.57860">
         <ele>519.1</ele>
         <time>2026-06-15T12:37:30Z</time>

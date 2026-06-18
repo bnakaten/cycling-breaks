@@ -66,7 +66,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
     if (to) params.set('before', String(Math.floor(new Date(to + 'T23:59:59').getTime() / 1000)));
     fetch(`/api/strava/activities?${params.toString()}`)
       .then((res) => {
-        if (!res.ok) throw new Error('Fehler beim Laden.');
+        if (!res.ok) throw new Error('Error loading.');
         return res.json();
       })
       .then((data) => setStravaActivities(data.activities || []))
@@ -91,7 +91,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
       const res = await fetch(`/api/strava/activity/${id}/gpx`);
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || 'Fehler beim Abrufen der GPX-Daten.');
+        throw new Error(err.error || 'Error fetching GPX data.');
       }
       const data = await res.json();
       const activity = stravaActivities.find((a) => a.id === id);
@@ -122,7 +122,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
   const processFile = (file: File) => {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith('.gpx') && !file.name.toLowerCase().endsWith('.xml')) {
-      alert('Bitte lade nur gültige GPX-Dateien hoch (.gpx).');
+      alert('Please only upload valid GPX files (.gpx).');
       return;
     }
 
@@ -190,10 +190,10 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
         <div>
           <h2 className="text-xs font-bold text-[#111827] uppercase tracking-wider flex items-center gap-2">
             <Sliders size={14} className="text-[#2563EB]" />
-            Parameter & Datei
+            Parameters &amp; File
           </h2>
           <p className="text-[11px] text-[#6B7280] mt-1.5 leading-relaxed">
-            Konfiguriere Grenzwerte und lade dein GPX-Protokoll zur Stopp-Erkennung.
+            Configure thresholds and upload your GPX log for stop detection.
           </p>
         </div>
 
@@ -205,7 +205,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
                 <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7.01 13.828h4.172" />
               </svg>
               <span className="text-xs font-semibold text-[#FC4C02] uppercase tracking-wider">
-                Strava Aktivität
+                Strava Activity
               </span>
             </div>
             <div className="flex gap-1.5 items-center">
@@ -228,15 +228,15 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
                 disabled={stravaLoading}
                 className="px-2 py-1 bg-[#E5E7EB] hover:bg-[#D1D5DB] text-[#374151] text-[10px] rounded font-semibold uppercase tracking-wider disabled:opacity-50 transition cursor-pointer"
               >
-                Laden
+                Load
               </button>
             </div>
             {stravaLoading && stravaActivities.length === 0 ? (
-              <p className="text-[10px] text-[#6B7280]">Lade Aktivitäten...</p>
+              <p className="text-[10px] text-[#6B7280]">Loading activities...</p>
             ) : stravaError && stravaActivities.length === 0 ? (
               <p className="text-[10px] text-rose-600">{stravaError}</p>
             ) : stravaActivities.length === 0 ? (
-              <p className="text-[10px] text-[#6B7280]">Keine Aktivitäten in diesem Zeitraum.</p>
+              <p className="text-[10px] text-[#6B7280]">No activities in this time range.</p>
             ) : (
               <div>
                 <select
@@ -245,7 +245,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
                   disabled={stravaLoading || isLoading}
                   className="w-full text-[10px] border border-[#E5E7EB] bg-white rounded px-2 py-1.5 text-[#111827] focus:outline-none focus:border-[#FC4C02] disabled:opacity-50"
                 >
-                  <option value="">Aktivität wählen...</option>
+                  <option value="">Select activity...</option>
                   {stravaActivities.map((a) => (
                     <option key={a.id} value={a.id}>
                       {formatDistance(a.distance)} — {a.name} ({new Date(a.start_date).toLocaleDateString()})
@@ -295,13 +295,13 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
                 <p className="text-[10px] text-slate-400 mt-0.5">{uploadedFile.size}</p>
               </div>
               <span className="inline-block text-[9px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold mt-1">
-                Ersetzen
+                Replace
               </span>
             </div>
           ) : (
             <div className="space-y-1 my-2 pointer-events-none">
-              <p className="text-xs font-semibold text-[#111827]">GPX Datei hier ablegen</p>
-              <p className="text-[11px] text-[#6B7280]">oder klicken zum Auswählen</p>
+              <p className="text-xs font-semibold text-[#111827]">Drop GPX file here</p>
+              <p className="text-[11px] text-[#6B7280]">or click to select</p>
             </div>
           )}
         </div>
@@ -312,7 +312,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
           <div className="flex flex-col gap-1.5">
             <div className="flex justify-between items-center text-[11px]">
               <label htmlFor="min-duration" className="font-semibold text-[#6B7280] uppercase tracking-wider">
-                Mindestdauer
+                Min duration
               </label>
               <span className="font-mono font-bold text-[#2563EB]">
                 {minDurationMinutes} Min.
@@ -334,7 +334,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
           <div className="flex flex-col gap-1.5">
             <div className="flex justify-between items-center text-[11px]">
               <label htmlFor="max-radius" className="font-semibold text-[#6B7280] uppercase tracking-wider">
-                Maximaler Radius
+                Max radius
               </label>
               <span className="font-mono font-bold text-[#2563EB]">
                 {maxRadiusMeters} m
@@ -355,7 +355,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
           {/* Method Selector */}
           <div>
             <label className="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block mb-2">
-              Erkennungsmethode
+              Detection method
             </label>
             <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#F9FAFB] border border-[#E5E7EB] rounded">
               {(['distance', 'speed', 'hybrid'] as const).map((method) => (
@@ -369,7 +369,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
                       : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
-                  {method === 'distance' ? 'Distanz' : method === 'speed' ? 'Tempo' : 'Hybrid'}
+                  {method === 'distance' ? 'Distance' : method === 'speed' ? 'Speed' : 'Hybrid'}
                 </button>
               ))}
             </div>
@@ -382,7 +382,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
               onClick={() => setShowAdvanced(!showAdvanced)}
               className="w-full flex items-center justify-between text-[11px] text-[#6B7280] hover:text-slate-800 font-semibold uppercase tracking-wider cursor-pointer"
             >
-              <span>Optionen</span>
+              <span>Options</span>
               {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             </button>
 
@@ -398,10 +398,10 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
                   />
                   <div className="min-w-0">
                     <span className="font-semibold text-slate-700">
-                      GPS-Ausreißer filtern
+                      Filter GPS outliers
                     </span>
                     <p className="text-[10px] text-[#6B7280] leading-normal">
-                      Eliminiert plötzliche Tracking-Fehlersprünge.
+                      Eliminates sudden tracking error jumps.
                     </p>
                   </div>
                 </label>
@@ -416,10 +416,10 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
                   />
                   <div className="min-w-0">
                     <span className="font-semibold text-slate-700">
-                      Bewegungen tolerieren
+                      Tolerate movements
                     </span>
                     <p className="text-[10px] text-[#6B7280] leading-normal">
-                      Toleriert kurzfristige Ausschläge innerhalb Stopps.
+                      Tolerates brief excursions within stops.
                     </p>
                   </div>
                 </label>
@@ -456,9 +456,9 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
           }`}
         >
           {isLoading ? (
-            <span>Wird analysiert...</span>
+            <span>Analyzing...</span>
           ) : (
-            <span>Analyse starten</span>
+            <span>Start analysis</span>
           )}
         </button>
       </div>

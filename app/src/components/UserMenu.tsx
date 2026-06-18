@@ -15,10 +15,10 @@ export function UserMenu() {
       <button
         onClick={logout}
         className="flex items-center gap-1 text-xs text-[#9CA3AF] hover:text-[#EF4444] transition cursor-pointer"
-        title="Abmelden"
+        title="Logout"
       >
         <LogOut size={14} />
-        <span>Abmelden</span>
+        <span>Logout</span>
       </button>
     </div>
   );

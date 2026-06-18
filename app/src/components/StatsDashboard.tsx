@@ -25,9 +25,9 @@ export function StatsDashboard({ summary }: StatsDashboardProps) {
     const displayMinutes = minutes % 60;
 
     if (hours > 0) {
-      return `${hours} Std. ${displayMinutes} Min.`;
+      return `${hours} h ${displayMinutes} min`;
     }
-    return `${displayMinutes} Min. ${displaySeconds} Sek.`;
+    return `${displayMinutes} min ${displaySeconds} sec`;
   };
 
   return (
@@ -38,12 +38,12 @@ export function StatsDashboard({ summary }: StatsDashboardProps) {
           <Clock size={18} />
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Gesamt-Standzeit</p>
+          <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Total stop time</p>
           <p className="text-lg font-bold font-mono text-[#111827] mt-1 truncate">
             {summary.totalStopDurationFormatted}
           </p>
           <p className="text-[10px] text-[#6B7280] mt-1">
-            Summe aller erkannten Stopps
+            Sum of all detected stops
           </p>
         </div>
       </div>
@@ -54,12 +54,12 @@ export function StatsDashboard({ summary }: StatsDashboardProps) {
           <Activity size={18} />
         </div>
         <div className="min-w-0 w-full">
-          <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Standzeit-Anteil</p>
+          <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Stop time ratio</p>
           <div className="flex items-baseline gap-1.5 mt-1">
             <p className="text-lg font-bold text-[#111827] font-mono">
               {summary.stopRatioPercent}%
             </p>
-            <span className="text-[10px] text-[#6B7280]">der Route</span>
+            <span className="text-[10px] text-[#6B7280]">of route</span>
           </div>
           
           {/* Micro Progress Bar */}
@@ -78,15 +78,15 @@ export function StatsDashboard({ summary }: StatsDashboardProps) {
           <MapPin size={18} />
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Anzahl der Stopps</p>
+          <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Stop count</p>
           <div className="flex items-baseline gap-1 mt-1">
             <p className="text-lg font-bold text-[#111827] font-mono">
               {summary.stopCount}
             </p>
-            <span className="text-[10px] text-[#6B7280] ml-1">Aufenthalte</span>
+            <span className="text-[10px] text-[#6B7280] ml-1">pauses</span>
           </div>
           <p className="text-[10px] text-[#6B7280] mt-1">
-            Ruhephasen erkannt
+            Rest periods detected
           </p>
         </div>
       </div>
@@ -97,14 +97,14 @@ export function StatsDashboard({ summary }: StatsDashboardProps) {
           <Navigation size={18} />
         </div>
         <div className="min-w-0 w-full">
-          <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Streckendetails</p>
+          <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider">Route details</p>
           <div className="grid grid-cols-2 gap-2 mt-1.5 text-xs">
             <div>
-              <p className="text-[10px] text-[#6B7280]">Distanz:</p>
+              <p className="text-[10px] text-[#6B7280]">Distance:</p>
               <p className="font-semibold text-slate-800 font-mono mt-0.5">{distanceKm} km</p>
             </div>
             <div>
-              <p className="text-[10px] text-[#6B7280]">Dauer:</p>
+              <p className="text-[10px] text-[#6B7280]">Duration:</p>
               <p className="font-semibold text-slate-800 font-mono mt-0.5 truncate" title={formatTrackDuration(summary.totalTrackDurationMs)}>
                 {formatTrackDuration(summary.totalTrackDurationMs)}
               </p>
@@ -113,7 +113,7 @@ export function StatsDashboard({ summary }: StatsDashboardProps) {
           {summary.filteredPointsCount > 0 && (
             <div className="mt-2 flex items-center gap-1 text-[9px] font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded w-fit">
               <ShieldAlert size={9} />
-              <span>{summary.filteredPointsCount} Sprünge gefiltert</span>
+              <span>{summary.filteredPointsCount} outliers filtered</span>
             </div>
           )}
         </div>

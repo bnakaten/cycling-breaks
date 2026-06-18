@@ -16,7 +16,7 @@ export function ProgressBar({ value, phase, fileName }: ProgressBarProps) {
     <div className="space-y-2">
       <div className="flex items-center justify-between text-[11px]">
         <span className="font-semibold text-[#6B7280]">
-          {isUploading ? 'Datei wird hochgeladen' : 'Daten werden analysiert'}
+          {isUploading ? 'Uploading file' : 'Analyzing data'}
         </span>
         <span className="font-mono font-bold text-[#2563EB] tabular-nums">
           {isUploading ? `${Math.round(clampedValue)}%` : ''}
@@ -43,14 +43,14 @@ export function ProgressBar({ value, phase, fileName }: ProgressBarProps) {
       {isUploading && (
         <p className="text-[10px] text-[#6B7280] flex items-center gap-1">
           <Loader2 size={10} className="animate-spin" />
-          GPX-Rohdaten werden an den Server gesendet...
+          Sending raw GPX data to the server...
         </p>
       )}
 
       {indeterminate && (
         <p className="text-[10px] text-[#6B7280] flex items-center gap-1">
           <Loader2 size={10} className="animate-spin" />
-          Stopp-Erkennung wird ausgeführt...
+          Running stop detection...
         </p>
       )}
     </div>

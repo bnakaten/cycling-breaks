@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         alert(data.error);
       }
     } catch (err) {
-      alert('Strava-Login nicht verfügbar. Bitte versuche es später erneut.');
+      alert('Strava login unavailable. Please try again later.');
     }
   }, []);
 
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data.success) {
       setStravaConfigured(true);
     } else {
-      throw new Error(data.error || 'Fehler beim Speichern der Konfiguration.');
+      throw new Error(data.error || 'Error saving configuration.');
     }
     return data;
   }, []);

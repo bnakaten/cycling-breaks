@@ -14,14 +14,14 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   const token = req.cookies?.token;
 
   if (!token) {
-    return res.status(401).json({ error: 'Nicht authentifiziert.' });
+    return res.status(401).json({ error: 'Not authenticated.' });
   }
 
   try {
     const payload = verifyToken(token);
     const user = await findUserById(payload.userId);
     if (!user) {
-      return res.status(401).json({ error: 'Benutzer nicht gefunden.' });
+      return res.status(401).json({ error: 'User not found.' });
     }
     req.user = {
       userId: payload.userId,
@@ -31,7 +31,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     };
     next();
   } catch {
-    return res.status(401).json({ error: 'Ungültiges Token.' });
+    return res.status(401).json({ error: 'Invalid token.' });
   }
 }
 

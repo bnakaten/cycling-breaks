@@ -38,7 +38,7 @@ async function startServer() {
       if (!content || typeof content !== 'string') {
         return res.status(400).json({
           success: false,
-          error: 'Ungültiger Datei-Inhalt. Es wurde kein Roh-GPX-Text bereitgestellt.',
+          error: 'Invalid file content. No raw GPX text was provided.',
         });
       }
 
@@ -56,7 +56,7 @@ async function startServer() {
       console.error('Analysis error in endpoint:', error);
       return res.status(500).json({
         success: false,
-        error: `Fehler bei der Server-Berechnung: ${error.message || error}`,
+        error: `Server calculation error: ${error.message || error}`,
       });
     }
   });
@@ -66,7 +66,7 @@ async function startServer() {
     try {
       const user = await findUserById(req.user!.userId);
       if (!user) {
-        return res.status(401).json({ error: 'Benutzer nicht gefunden.' });
+        return res.status(401).json({ error: 'User not found.' });
       }
 
       let accessToken = user.access_token;
@@ -77,7 +77,7 @@ async function startServer() {
           accessToken = refreshed.access_token;
           await updateTokens(user.id, refreshed.access_token, refreshed.refresh_token, refreshed.expires_at);
         } catch {
-          return res.status(401).json({ error: 'Strava-Sitzung abgelaufen. Bitte erneut einloggen.' });
+          return res.status(401).json({ error: 'Strava session expired. Please log in again.' });
         }
       }
 
@@ -87,7 +87,7 @@ async function startServer() {
       return res.json({ activities });
     } catch (err: any) {
       console.error('Strava activities error:', err);
-      return res.status(500).json({ error: err.message || 'Fehler beim Abrufen der Aktivitäten.' });
+      return res.status(500).json({ error: err.message || 'Error fetching activities.' });
     }
   });
 
@@ -96,12 +96,12 @@ async function startServer() {
     try {
       const activityId = parseInt(req.params.id, 10);
       if (isNaN(activityId)) {
-        return res.status(400).json({ error: 'Ungültige Aktivitäts-ID.' });
+        return res.status(400).json({ error: 'Invalid activity ID.' });
       }
 
       const user = await findUserById(req.user!.userId);
       if (!user) {
-        return res.status(401).json({ error: 'Benutzer nicht gefunden.' });
+        return res.status(401).json({ error: 'User not found.' });
       }
 
       let accessToken = user.access_token;
@@ -112,14 +112,14 @@ async function startServer() {
           accessToken = refreshed.access_token;
           await updateTokens(user.id, refreshed.access_token, refreshed.refresh_token, refreshed.expires_at);
         } catch {
-          return res.status(401).json({ error: 'Strava-Sitzung abgelaufen. Bitte erneut einloggen.' });
+          return res.status(401).json({ error: 'Strava session expired. Please log in again.' });
         }
       }
 
       const streams = await getActivityStreams(accessToken, activityId);
 
       if (!streams.latlng || !streams.time) {
-        return res.status(400).json({ error: 'Diese Aktivität enthält keine GPS-Daten.' });
+        return res.status(400).json({ error: 'This activity contains no GPS data.' });
       }
 
       const activityName = streams.latlng ? 'Strava Activity' : '';
@@ -129,9 +129,9 @@ async function startServer() {
     } catch (err: any) {
       console.error('Strava GPX error:', err);
       if (err instanceof StravaAuthError) {
-        return res.status(401).json({ error: 'Strava-Token ungültig. Bitte erneut einloggen.' });
+        return res.status(401).json({ error: 'Strava token invalid. Please log in again.' });
       }
-      return res.status(500).json({ error: err.message || 'Fehler beim Abrufen der GPX-Daten.' });
+      return res.status(500).json({ error: err.message || 'Error fetching GPX data.' });
     }
   });
 

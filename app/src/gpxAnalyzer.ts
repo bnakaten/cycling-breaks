@@ -139,7 +139,7 @@ export function analyzeGPXData(xmlContent: string, settings: AnalysisSettings): 
     if (rawPoints.length === 0) {
       return {
         success: false,
-        error: "Keine gültigen Trackpunkte mit Zeitstempel im GPX-Dokument gefunden.",
+        error: "No valid track points with timestamps found in the GPX document.",
         points: [],
         stops: [],
         summary: createEmptySummary(),
@@ -461,7 +461,7 @@ export function analyzeGPXData(xmlContent: string, settings: AnalysisSettings): 
   } catch (error: any) {
     return {
       success: false,
-      error: `Analyse-Fehler: ${error.message || error}`,
+      error: `Analysis error: ${error.message || error}`,
       points: [],
       stops: [],
       summary: createEmptySummary(),

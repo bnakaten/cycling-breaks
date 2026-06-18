@@ -14,7 +14,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { BuildInfo } from './components/BuildInfo';
 import { UserMenu } from './components/UserMenu';
 import { AuthProvider, useAuth } from './components/AuthContext';
-import { Info, Sparkles, FileSpreadsheet, Compass } from 'lucide-react';
+import { Info, Sparkles, FileSpreadsheet, HelpCircle } from 'lucide-react';
 
 export default function App() {
   return (
@@ -44,6 +44,7 @@ function AppContent() {
   const [configRedirectUri, setConfigRedirectUri] = useState('https://cycling-breaks.onrender.com/api/auth/strava/callback');
   const [configError, setConfigError] = useState<string | null>(null);
   const [configSaving, setConfigSaving] = useState(false);
+  const [showStravaHelp, setShowStravaHelp] = useState(false);
 
   // Trigger analysis by calling Express REST API back-end
   const handleAnalyze = (content: string, name: string, settings: AnalysisSettings) => {
@@ -71,14 +72,14 @@ function AppContent() {
             setSummary(result.summary);
             setFilename(name);
           } else {
-            throw new Error(result.error || 'Unbekannter Fehler bei der Analyse.');
+            throw new Error(result.error || 'Unknown error during analysis.');
           }
         } catch (parseErr: any) {
           console.error(parseErr);
-          setError(parseErr.message || 'Fehler beim Verarbeiten der Antwort.');
+          setError(parseErr.message || 'Error processing the response.');
         }
       } else {
-        let errMsg = `Netzwerk-Fehler (${xhr.status})`;
+        let errMsg = `Network error (${xhr.status})`;
         try {
           const errDetail = JSON.parse(xhr.responseText);
           errMsg = errDetail.error || errMsg;
@@ -91,7 +92,7 @@ function AppContent() {
     });
 
     xhr.addEventListener('error', () => {
-      setError('Verbindung zum Analyse-Server fehlgeschlagen.');
+      setError('Connection to analysis server failed.');
       setIsLoading(false);
       setUploadProgress(null);
       setUploadPhase(null);
@@ -135,7 +136,7 @@ function AppContent() {
       await configureStrava(configClientId, configClientSecret, configRedirectUri);
       login();
     } catch (err: any) {
-      setConfigError(err.message || 'Fehler beim Speichern.');
+      setConfigError(err.message || 'Error saving.');
     } finally {
       setConfigSaving(false);
     }
@@ -147,13 +148,11 @@ function AppContent() {
       {/* 1. Header Navigation */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-[#E5E7EB] px-6 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded bg-[#2563EB] flex items-center justify-center text-white">
-            <Compass size={18} />
-          </div>
+          <img src="logo.png" alt="Tour Standzeit" className="w-9 h-9 rounded" />
           <div>
-            <h1 className="text-sm font-bold tracking-tight text-[#111827]">GPX Analyzer</h1>
+            <h1 className="text-sm font-bold tracking-tight text-[#111827]">Tour Standzeit</h1>
             <p className="text-[10px] text-[#6B7280] font-semibold uppercase tracking-wider">
-              Standzeit-Analyse & Wegpunkt-Filter
+              Stop-time Analysis &amp; Waypoint Filter
             </p>
           </div>
         </div>
@@ -165,55 +164,70 @@ function AppContent() {
             if (user) return <UserMenu key="menu" />;
             if (showStravaConfig) {
               return (
-                <form key="config" onSubmit={handleConfigSubmit} className="flex items-center gap-1.5 flex-wrap">
-                  <input
-                    type="text"
-                    placeholder="Client ID"
-                    value={configClientId}
-                    onChange={(e) => setConfigClientId(e.target.value)}
-                    className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-28 focus:outline-none focus:border-[#FC4C02]"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Client Secret"
-                    value={configClientSecret}
-                    onChange={(e) => setConfigClientSecret(e.target.value)}
-                    className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-32 focus:outline-none focus:border-[#FC4C02]"
-                  />
-                  <input
-                    type="text"
-                    placeholder="http://cycling-breaks.onrender.com/api/auth/strava/callback"
-                    value={configRedirectUri}
-                    onChange={(e) => setConfigRedirectUri(e.target.value)}
-                    className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-64 focus:outline-none focus:border-[#FC4C02]"
-                  />
-                  <button
-                    type="submit"
-                    disabled={configSaving}
-                    className="bg-[#FC4C02] hover:bg-[#E34402] text-white text-[10px] px-2 py-1 rounded font-semibold disabled:opacity-50 transition cursor-pointer"
-                  >
-                    {configSaving ? 'Speichere...' : 'Speichern & verbinden'}
-                  </button>
-                  {stravaConfigured && (
+                <div key="config" className="flex flex-col gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-semibold text-[#FC4C02]">1.</span>
+                    <span className="text-[10px] text-[#374151]">Setup Strava API application</span>
                     <button
                       type="button"
-                      onClick={() => { setShowStravaConfig(false); login(); }}
-                      className="bg-[#E5E7EB] hover:bg-[#D1D5DB] text-[#374151] text-[10px] px-2 py-1 rounded font-semibold transition cursor-pointer"
+                      onClick={() => setShowStravaHelp(true)}
+                      className="text-[#9CA3AF] hover:text-[#2563EB] transition cursor-pointer"
+                      title="How to get Strava API credentials"
                     >
-                      Verbinden
+                      <HelpCircle size={12} />
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => { setShowStravaConfig(false); setConfigError(null); }}
-                    className="text-[10px] text-[#6B7280] hover:text-[#111827] px-1 py-1 cursor-pointer"
-                  >
-                    Abbrechen
-                  </button>
-                  {configError && (
-                    <span className="text-[10px] text-rose-600 w-full">{configError}</span>
-                  )}
-                </form>
+                  </div>
+                  <form onSubmit={handleConfigSubmit} className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] font-semibold text-[#FC4C02]">2.</span>
+                    <input
+                      type="text"
+                      placeholder="Client ID"
+                      value={configClientId}
+                      onChange={(e) => setConfigClientId(e.target.value)}
+                      className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-28 focus:outline-none focus:border-[#FC4C02]"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Client Secret"
+                      value={configClientSecret}
+                      onChange={(e) => setConfigClientSecret(e.target.value)}
+                      className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-32 focus:outline-none focus:border-[#FC4C02]"
+                    />
+                    <input
+                      type="text"
+                      placeholder="http://cycling-breaks.onrender.com/api/auth/strava/callback"
+                      value={configRedirectUri}
+                      onChange={(e) => setConfigRedirectUri(e.target.value)}
+                      className="text-[10px] border border-[#E5E7EB] rounded px-2 py-1 w-64 focus:outline-none focus:border-[#FC4C02]"
+                    />
+                    <button
+                      type="submit"
+                      disabled={configSaving}
+                      className="bg-[#FC4C02] hover:bg-[#E34402] text-white text-[10px] px-2 py-1 rounded font-semibold disabled:opacity-50 transition cursor-pointer"
+                    >
+                      {configSaving ? 'Saving...' : 'Save & connect'}
+                    </button>
+                    {stravaConfigured && (
+                      <button
+                        type="button"
+                        onClick={() => { setShowStravaConfig(false); login(); }}
+                        className="bg-[#E5E7EB] hover:bg-[#D1D5DB] text-[#374151] text-[10px] px-2 py-1 rounded font-semibold transition cursor-pointer"
+                      >
+                         Connect
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => { setShowStravaConfig(false); setConfigError(null); }}
+                      className="text-[10px] text-[#6B7280] hover:text-[#111827] px-1 py-1 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    {configError && (
+                      <span className="text-[10px] text-rose-600 w-full">{configError}</span>
+                    )}
+                  </form>
+                </div>
               );
             }
             return (
@@ -225,7 +239,7 @@ function AppContent() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7.01 13.828h4.172" />
                 </svg>
-                Mit Strava verbinden
+                Connect with Strava
               </button>
             );
           })()}
@@ -235,7 +249,7 @@ function AppContent() {
             className="inline-flex items-center gap-1.5 bg-white border border-[#E5E7EB] hover:border-blue-300 text-[#111827] hover:text-[#2563EB] text-xs px-3 py-1.5 rounded font-semibold transition cursor-pointer disabled:opacity-50"
           >
             <Sparkles size={12} className="text-amber-500" />
-            Demodaten laden
+            Load demo data
           </button>
           
           <a
@@ -245,7 +259,7 @@ function AppContent() {
             className="text-[10px] text-[#6B7230] hover:text-[#111827] font-semibold flex items-center gap-1"
           >
             <Info size={11} />
-            Karten: &copy; OSM
+            Maps: &copy; OSM
           </a>
         </div>
       </header>
@@ -259,30 +273,30 @@ function AppContent() {
             
             <div className="space-y-3 max-w-2xl text-center md:text-left">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[9px] font-extrabold tracking-wider text-blue-700 bg-blue-50 uppercase border border-blue-100">
-                Willkommen bei GPX Analyzer
+                Welcome to Tour Standzeit
               </span>
               <h2 className="text-lg md:text-xl font-bold text-[#111827] tracking-tight">
-                Analysiere Standzeiten aus aufgezeichneten GPX-Routen
+                Analyze stop times from recorded GPX routes
               </h2>
               <p className="text-xs text-[#6B7280] leading-relaxed">
-                Diese Anwendung ermöglicht es dir, GPS-Datenpfade hochzuladen und detailliert nach 
-                Standzeiten (Aufenthalten/Stopps) zu durchsuchen. Der Algorithmus rechnet GPS-Schwankungen (Jitter) raus, 
-                filtert Signalausreißer und listet alle Ruhephasen tabellarisch sowie visualisiert auf einer interaktiven OSM-Karte auf.
+                This application lets you upload GPS data paths and search them in detail for
+                stop times (pauses/stops). The algorithm eliminates GPS jitter,
+                filters signal outliers and lists all rest periods in both tabular form and visualised on an interactive OSM map.
               </p>
               
               {/* Feature Tags */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
                 <span className="text-[10px] bg-slate-50 text-[#6B7280] px-2 py-0.5 rounded border border-[#E5E7EB]">
-                  Mindestdauer anpassbar
+                  Adjustable minimum duration
                 </span>
                 <span className="text-[10px] bg-slate-50 text-[#6B7280] px-2 py-0.5 rounded border border-[#E5E7EB]">
-                  Maximaler Radius wählbar
+                  Selectable maximum radius
                 </span>
                 <span className="text-[10px] bg-slate-50 text-[#6B7280] px-2 py-0.5 rounded border border-[#E5E7EB]">
-                  Interaktive Kartenabschnitte
+                  Interactive map sections
                 </span>
                 <span className="text-[10px] bg-slate-50 text-[#6B7280] px-2 py-0.5 rounded border border-[#E5E7EB]">
-                  Hybride Berechnung
+                  Hybrid calculation
                 </span>
               </div>
             </div>
@@ -294,10 +308,10 @@ function AppContent() {
                 className="w-full py-2.5 px-4 bg-[#2563EB] hover:bg-blue-700 text-white rounded font-semibold text-xs transition duration-150 tracking-wide text-center flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Sparkles size={14} />
-                Demodaten laden
+                Load demo data
               </button>
               <p className="text-[10px] text-[#6B7280] text-center">
-                Direkt testen mit unserem historischen Rundgang.
+                Test directly with our historic walking tour.
               </p>
             </div>
           </div>
@@ -327,11 +341,11 @@ function AppContent() {
                   <div className="flex items-center gap-2 text-slate-500">
                     <FileSpreadsheet size={15} />
                     <span className="text-xs font-semibold text-slate-500">
-                      Ergebnisse für: <strong className="text-slate-800 font-bold">{filename}</strong>
+                      Results for: <strong className="text-slate-800 font-bold">{filename}</strong>
                     </span>
                   </div>
                   <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-sm">
-                    ● Analyse abgeschlossen
+                    ● Analysis complete
                   </span>
                 </div>
                 <StatsDashboard summary={summary} />
@@ -368,6 +382,28 @@ function AppContent() {
       </main>
 
       <BuildInfo />
+
+      {showStravaHelp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowStravaHelp(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E7EB]">
+              <h3 className="text-sm font-semibold text-[#111827]">How to get Strava API credentials</h3>
+              <button
+                onClick={() => setShowStravaHelp(false)}
+                className="text-[#9CA3AF] hover:text-[#111827] transition cursor-pointer"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <p className="text-xs text-[#6B7280] leading-relaxed">
+                Go to <a href="https://strava.com" target="_blank" rel="noopener noreferrer" className="text-[#FC4C02] hover:underline">strava.com</a>, log in, navigate to <strong>Settings</strong> and <strong>My API Application</strong>. Configure the API application as shown below.
+              </p>
+              <img src="how-to-strava-api.png" alt="How to get Strava API credentials" className="w-full rounded" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
