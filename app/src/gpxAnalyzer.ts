@@ -5,6 +5,7 @@
 
 import { XMLParser } from 'fast-xml-parser';
 import { GPXPoint, GPXStop, AnalysisSettings, AnalysisResponse, AnalysisSummary } from './types';
+import tzLookup from 'tz-lookup';
 
 // Haversine formula to calculate the distance between two GPS coordinates in meters
 export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -19,6 +20,16 @@ export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+// Determine IANA timezone at the track location from its coordinates
+function computeTrackTimezone(points: GPXPoint[]): string {
+  try {
+    if (points.length > 0) {
+      return tzLookup(points[0].lat, points[0].lon);
+    }
+  } catch {}
+  return '';
 }
 
 // Convert trackpoints into formatted display durations
@@ -456,6 +467,7 @@ export function analyzeGPXData(xmlContent: string, settings: AnalysisSettings): 
       points,
       stops,
       summary,
+      timezone: computeTrackTimezone(points),
     };
 
   } catch (error: any) {

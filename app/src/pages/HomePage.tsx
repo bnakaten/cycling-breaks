@@ -19,6 +19,7 @@ export function HomePage() {
   const [selectedStop, setSelectedStop] = useState<GPXStop | null>(null);
   const [summary, setSummary] = useState<any>(null);
   const [filename, setFilename] = useState<string>('');
+  const [timezone, setTimezone] = useState<string>('');
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +49,7 @@ export function HomePage() {
             setPoints(result.points);
             setStops(result.stops);
             setSummary(result.summary);
+            setTimezone(result.timezone || '');
             setFilename(name);
           } else {
             throw new Error(result.error || 'Unknown error during analysis.');
@@ -189,6 +191,7 @@ export function HomePage() {
                 stops={stops}
                 selectedStop={selectedStop}
                 onStopSelect={setSelectedStop}
+                timezone={timezone}
               />
             </ErrorBoundary>
           </div>
@@ -199,6 +202,7 @@ export function HomePage() {
                 stops={stops}
                 selectedStop={selectedStop}
                 onStopSelect={setSelectedStop}
+                timezone={timezone}
               />
             </div>
           )}

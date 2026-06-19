@@ -11,12 +11,13 @@ interface StopListProps {
   stops: GPXStop[];
   selectedStop: GPXStop | null;
   onStopSelect: (stop: GPXStop | null) => void;
+  timezone?: string;
 }
 
 type SortField = 'index' | 'startTime' | 'durationMs' | 'maxDistanceDelta' | 'pointCount';
 type SortOrder = 'asc' | 'desc';
 
-export function StopList({ stops, selectedStop, onStopSelect }: StopListProps) {
+export function StopList({ stops, selectedStop, onStopSelect, timezone }: StopListProps) {
   const [sortField, setSortField] = useState<SortField>('startTime');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
@@ -58,12 +59,16 @@ export function StopList({ stops, selectedStop, onStopSelect }: StopListProps) {
 
   const displayTime = (isoString: string) => {
     const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const options: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    if (timezone) options.timeZone = timezone;
+    return date.toLocaleTimeString([], options);
   };
 
   const displayDate = (isoString: string) => {
     const date = new Date(isoString);
-    return date.toLocaleDateString([], { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    if (timezone) options.timeZone = timezone;
+    return date.toLocaleDateString([], options);
   };
 
   if (stops.length === 0) {

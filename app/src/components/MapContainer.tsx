@@ -13,9 +13,10 @@ interface MapContainerProps {
   stops: GPXStop[];
   selectedStop: GPXStop | null;
   onStopSelect: (stop: GPXStop | null) => void;
+  timezone?: string;
 }
 
-export function MapContainer({ points, stops, selectedStop, onStopSelect }: MapContainerProps) {
+export function MapContainer({ points, stops, selectedStop, onStopSelect, timezone }: MapContainerProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const gpxLayerRef = useRef<L.Polyline | null>(null);
@@ -24,6 +25,12 @@ export function MapContainer({ points, stops, selectedStop, onStopSelect }: MapC
   const stopLayersRef = useRef<{ circle: L.Circle | null; marker: L.Marker | null }[]>([]);
   const selectedStopLayersRef = useRef<{ ring: L.Circle | null; center: L.CircleMarker | null } | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+
+  const fmtTime = (isoString: string) => {
+    const options: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    if (timezone) options.timeZone = timezone;
+    return new Date(isoString).toLocaleTimeString([], options);
+  };
 
   useEffect(() => {
     if (!mapRef.current && mapContainerRef.current) {
@@ -120,9 +127,9 @@ export function MapContainer({ points, stops, selectedStop, onStopSelect }: MapC
               <span class="font-medium text-gray-500">Duration:</span>
               <span class="font-bold text-gray-900">${stop.durationFormatted}</span>
               <span class="font-medium text-gray-500">Start:</span>
-              <span>${new Date(stop.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              <span>${fmtTime(stop.startTime)}</span>
               <span class="font-medium text-gray-500">End:</span>
-              <span>${new Date(stop.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+              <span>${fmtTime(stop.endTime)}</span>
               <span class="font-medium text-gray-500">Scatter:</span>
               <span>&le; ${stop.maxDistanceDelta} m</span>
               <span class="font-medium text-gray-500">Points:</span>

@@ -65,6 +65,7 @@ export interface AnalysisResponse {
   points: GPXPoint[];
   stops: GPXStop[];
   summary: AnalysisSummary;
+  timezone?: string;
 }
 
 export interface AuthUser {
