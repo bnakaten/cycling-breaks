@@ -1,6 +1,6 @@
 /**
  * @license
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -40,6 +40,7 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
   const [selectedActivityId, setSelectedActivityId] = useState<number | null>(null);
   const [stravaLoading, setStravaLoading] = useState<boolean>(false);
   const [stravaError, setStravaError] = useState<string | null>(null);
+  const [stravaDownloadProgress, setStravaDownloadProgress] = useState<number | null>(null);
   const [stravaDateFrom, setStravaDateFrom] = useState<string>(() => {
     const d = new Date();
     d.setMonth(d.getMonth() - 1);
@@ -85,22 +86,51 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
       setUploadedFile(null);
       return;
     }
+    const activity = stravaActivities.find((a) => a.id === id);
+    const startDate = activity?.start_date || '';
     setStravaLoading(true);
     setStravaError(null);
+    setStravaDownloadProgress(0);
     try {
-      const res = await fetch(`/api/strava/activity/${id}/gpx`);
-      if (!res.ok) {
-        const err = await res.json();
+      const url = `/api/strava/activity/${id}/gpx?startDate=${encodeURIComponent(startDate)}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        const err = await response.json();
         throw new Error(err.error || 'Error fetching GPX data.');
       }
-      const data = await res.json();
-      const activity = stravaActivities.find((a) => a.id === id);
+
+      const contentLength = response.headers.get('Content-Length');
+      const total = contentLength ? parseInt(contentLength, 10) : 0;
+      const reader = response.body!.getReader();
+      const chunks: Uint8Array[] = [];
+      let received = 0;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        received += value.length;
+        if (total > 0) {
+          setStravaDownloadProgress(Math.round((received / total) * 100));
+        }
+      }
+
+      const merged = new Uint8Array(received);
+      let offset = 0;
+      for (const chunk of chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.length;
+      }
+      const body = new TextDecoder().decode(merged);
+      const data = JSON.parse(body);
+
       const name = activity ? `${activity.name}.gpx` : `strava_${id}.gpx`;
       setUploadedFile({ name, content: data.gpx, size: '' });
     } catch (err: any) {
       setStravaError(err.message);
     } finally {
       setStravaLoading(false);
+      setStravaDownloadProgress(null);
     }
   };
 
@@ -256,6 +286,9 @@ export function UploadForm({ onAnalyze, isLoading, error, uploadProgress, upload
             )}
             {stravaError && stravaActivities.length > 0 && (
               <p className="text-[10px] text-rose-600">{stravaError}</p>
+            )}
+            {stravaDownloadProgress !== null && (
+              <ProgressBar value={stravaDownloadProgress} phase="loading" />
             )}
           </div>
         )}

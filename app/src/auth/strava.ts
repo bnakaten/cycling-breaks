@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 let stravaClientId = process.env.STRAVA_CLIENT_ID || '';
 let stravaClientSecret = process.env.STRAVA_CLIENT_SECRET || '';
 let stravaRedirectUri = process.env.STRAVA_REDIRECT_URI || '';
@@ -149,18 +154,21 @@ export async function getActivityStreams(accessToken: string, activityId: number
 
 export function buildGPXFromStreams(
   streams: StravaStreams,
-  activityName: string
+  activityName: string,
+  startDate?: string
 ): string {
   const latlng = streams.latlng?.data ?? [];
   const times = streams.time?.data ?? [];
   const altitudes = streams.altitude?.data ?? [];
+
+  const baseTimeMs = startDate ? new Date(startDate).getTime() : 0;
 
   const points: string[] = [];
   const count = Math.min(latlng.length, times.length);
 
   for (let i = 0; i < count; i++) {
     const [lat, lon] = latlng[i];
-    const time = new Date(times[i] * 1000).toISOString();
+    const time = new Date(baseTimeMs + times[i] * 1000).toISOString();
     const ele = altitudes[i] != null ? `<ele>${altitudes[i].toFixed(1)}</ele>` : '';
     points.push(
       `      <trkpt lat="${lat}" lon="${lon}">${ele ? `\n        ${ele}` : ''}

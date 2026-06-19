@@ -1,10 +1,18 @@
-import {StrictMode} from 'react';
-import {createRoot} from 'react-dom/client';
+/**
+ * @license
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
 );

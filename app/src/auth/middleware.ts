@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken, JwtPayload } from './jwt';
 import { findUserById } from './db';

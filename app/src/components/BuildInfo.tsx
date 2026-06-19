@@ -1,5 +1,11 @@
+/**
+ * @license
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import React from 'react';
-import { GitBranch, GitCommit, Clock } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { GitBranch, GitCommit, Clock, Scale } from 'lucide-react';
 
 export function BuildInfo() {
   const branch = __GIT_BRANCH__;
@@ -17,11 +23,17 @@ export function BuildInfo() {
 
   return (
     <footer className="mt-auto border-t border-[#E5E7EB] bg-white px-6 py-3">
-      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-end gap-4 text-[11px] text-[#9CA3AF]">
-        <span className="inline-flex items-center gap-1">
-          <Clock size={12} />
-          {buildTime}
-        </span>
+      <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 text-[11px] text-[#9CA3AF]">
+        <div className="flex items-center gap-4">
+          <Link to="/datenschutz" className="hover:text-[#6B7280] transition">
+            Privacy Policy
+          </Link>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="inline-flex items-center gap-1">
+            <Clock size={12} />
+            {buildTime}
+          </span>
         <a
           href={repoUrl}
           target="_blank"
@@ -40,6 +52,16 @@ export function BuildInfo() {
           <GitCommit size={12} />
           {commit}
         </a>
+        <a
+          href="https://www.gnu.org/licenses/gpl-3.0.html"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 hover:text-[#6B7280] transition"
+        >
+          <Scale size={12} />
+          GPL-3.0-or-later
+        </a>
+        </div>
       </div>
     </footer>
   );

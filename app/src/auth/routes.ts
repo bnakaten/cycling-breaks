@@ -1,8 +1,13 @@
+/**
+ * @license
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { isStravaConfigured, getStravaAuthUrl, exchangeCodeForToken, setStravaCredentials, getStravaEnvRedirectUri } from './strava';
 import { signToken } from './jwt';
-import { upsertUser } from './db';
+import { upsertUser, deleteUser } from './db';
 import { authMiddleware } from './middleware';
 
 const stateStore = new Map<string, { state: string; expiresAt: number }>();
@@ -121,6 +126,42 @@ export function createAuthRouter(): Router {
   router.post('/logout', (_req: Request, res: Response) => {
     res.clearCookie('token');
     return res.json({ success: true });
+  });
+
+  router.post('/delete-account', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+
+      const { getStravaConfig } = await import('./db');
+      const config = await getStravaConfig();
+      const clientId = config?.client_id || process.env.STRAVA_CLIENT_ID;
+      const clientSecret = config?.client_secret || process.env.STRAVA_CLIENT_SECRET;
+
+      const { findUserById } = await import('./db');
+      const userRow = await findUserById(user.userId);
+
+      if (userRow && clientId && clientSecret) {
+        try {
+          await fetch('https://www.strava.com/oauth/deauthorize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              client_id: clientId,
+              client_secret: clientSecret,
+              access_token: userRow.access_token,
+            }),
+          });
+        } catch {}
+      }
+
+      await deleteUser(user.userId);
+
+      res.clearCookie('token');
+      return res.json({ success: true });
+    } catch (err: any) {
+      console.error('Delete account error:', err);
+      return res.status(500).json({ error: err.message || 'Error deleting account.' });
+    }
   });
 
   return router;

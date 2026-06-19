@@ -1,25 +1,38 @@
+/**
+ * @license
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface ProgressBarProps {
   value: number;
-  phase: 'uploading' | 'analyzing';
+  phase: 'uploading' | 'analyzing' | 'loading';
   fileName?: string;
 }
 
 export function ProgressBar({ value, phase, fileName }: ProgressBarProps) {
   const isUploading = phase === 'uploading';
+  const isLoading = phase === 'loading';
   const clampedValue = Math.min(100, Math.max(0, value));
   const indeterminate = phase === 'analyzing';
+
+  const label = isLoading ? 'Loading Strava activity' : isUploading ? 'Uploading file' : 'Analyzing data';
+  const desc = isLoading
+    ? 'Downloading GPX data from Strava...'
+    : isUploading
+      ? 'Sending raw GPX data to the server...'
+      : 'Running stop detection...';
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-[11px]">
         <span className="font-semibold text-[#6B7280]">
-          {isUploading ? 'Uploading file' : 'Analyzing data'}
+          {label}
         </span>
         <span className="font-mono font-bold text-[#2563EB] tabular-nums">
-          {isUploading ? `${Math.round(clampedValue)}%` : ''}
+          {(isUploading || isLoading) ? `${Math.round(clampedValue)}%` : ''}
         </span>
       </div>
 
@@ -40,17 +53,10 @@ export function ProgressBar({ value, phase, fileName }: ProgressBarProps) {
         </p>
       )}
 
-      {isUploading && (
+      {(isUploading || isLoading || indeterminate) && (
         <p className="text-[10px] text-[#6B7280] flex items-center gap-1">
           <Loader2 size={10} className="animate-spin" />
-          Sending raw GPX data to the server...
-        </p>
-      )}
-
-      {indeterminate && (
-        <p className="text-[10px] text-[#6B7280] flex items-center gap-1">
-          <Loader2 size={10} className="animate-spin" />
-          Running stop detection...
+          {desc}
         </p>
       )}
     </div>

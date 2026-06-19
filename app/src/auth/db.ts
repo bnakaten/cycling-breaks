@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import initSqlJs, { Database as SqlJsDatabase } from 'sql.js';
 import fs from 'fs';
 import path from 'path';
@@ -149,6 +154,12 @@ export async function findUserById(id: number): Promise<UserRow | undefined> {
   const result = d.exec('SELECT * FROM users WHERE id = ?', [id]);
   if (result.length === 0 || result[0].values.length === 0) return undefined;
   return rowToUser(result[0]);
+}
+
+export async function deleteUser(id: number): Promise<void> {
+  const d = await initDb();
+  d.run('DELETE FROM users WHERE id = ?', [id]);
+  saveDb();
 }
 
 export async function updateTokens(

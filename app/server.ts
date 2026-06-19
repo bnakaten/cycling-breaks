@@ -1,6 +1,6 @@
 /**
  * @license
- * SPDX-License-Identifier: Apache-2.0
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import 'dotenv/config';
@@ -123,7 +123,8 @@ async function startServer() {
       }
 
       const activityName = streams.latlng ? 'Strava Activity' : '';
-      const gpx = buildGPXFromStreams(streams, activityName);
+      const startDate = (req.query.startDate as string) || '';
+      const gpx = buildGPXFromStreams(streams, activityName, startDate);
 
       return res.json({ gpx, activityId });
     } catch (err: any) {

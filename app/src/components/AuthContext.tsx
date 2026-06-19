@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { AuthUser } from '../types';
 
@@ -7,6 +12,7 @@ interface AuthContextType {
   stravaConfigured: boolean;
   login: () => void;
   logout: () => void;
+  deleteAccount: () => Promise<void>;
   configureStrava: (clientId: string, clientSecret: string, redirectUri?: string) => Promise<any>;
 }
 
@@ -16,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   stravaConfigured: false,
   login: () => {},
   logout: () => {},
+  deleteAccount: async () => {},
   configureStrava: async () => {},
 });
 
@@ -89,8 +96,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    await fetch('/api/auth/delete-account', { method: 'POST' });
+    setUser(null);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, stravaConfigured, login, logout, configureStrava }}>
+    <AuthContext.Provider value={{ user, isLoading, stravaConfigured, login, logout, deleteAccount, configureStrava }}>
       {children}
     </AuthContext.Provider>
   );
